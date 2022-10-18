@@ -24,13 +24,32 @@
  * THE SOFTWARE.
  */
 
-#ifndef HH_Audio_h_
-#define HH_Audio_h_
+#ifndef mixer_xch_h_
+#define mixer_xch_h_
 
-// include all the library headers, so a sketch can use a single
-// #include <Audio.h> to get the whole library
-//
-#include "panner.h"
-#include "mixer_xch.h"
+#include "Arduino.h"
+#include "AudioStream.h"
+
+#define MIXER_XCH_MAXCHANNELS 16
+
+class Mixer_XCH : public AudioStream
+{
+public:
+    Mixer_XCH( void ) : AudioStream(MIXER_XCH_MAXCHANNELS, inputQueueArray) {}
+    virtual void update(void);
+    void gain(unsigned int channel, float gain) {
+        if (channel >= MIXER_XCH_MAXCHANNELS) return;
+        if (gain > 32767.0f) gain = 32767.0f;
+        else if (gain < -32767.0f) gain = -32767.0f;
+        multiplier[channel] = gain * 65536.0f; // TODO: proper roundoff?
+    }
+  
+private:
+    int16_t multiplier[MIXER_XCH_MAXCHANNELS];
+	audio_block_t *inputQueueArray[MIXER_XCH_MAXCHANNELS];
+
+
+
+};
 
 #endif
