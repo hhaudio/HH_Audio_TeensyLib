@@ -1,5 +1,5 @@
 /* Audio Library for Teensy 3.X
- * Copyright (c) 2014, Paul Stoffregen, paul@pjrc.com
+ * Copyright (c) 2018, Paul Stoffregen, paul@pjrc.com
  *
  * Development of this audio library was funded by PJRC.COM, LLC by sales of
  * Teensy and Audio Adaptor boards.  Please support PJRC's efforts to develop
@@ -24,33 +24,35 @@
  * THE SOFTWARE.
  */
 
-#ifndef mixer_xch_h_
-#define mixer_xch_h_
+#include <Arduino.h>
+#include "arbitrary.h"
+#include "arm_math.h"
 
-#include "Arduino.h"
-#include "AudioStream.h"
-
-#define MIXER_XCH_MAXCHANNELS 32
-
-class Mixer_XCH : public AudioStream
+void ArbitraryWaveform::update(void)
 {
-public:
-    Mixer_XCH( void ) : AudioStream(MIXER_XCH_MAXCHANNELS, inputQueueArray) {}
-    virtual void update(void);
-    void gain(unsigned int channel, float gain) {
-        if (channel >= MIXER_XCH_MAXCHANNELS) return;
-        if (gain > 32767.0f) gain = 32767.0f;
-        else if (gain < -32767.0f) gain = -32767.0f;
-        multiplier[channel] = gain * 65536.0f; // TODO: proper roundoff?
-    }
+	audio_block_t *block;
+	uint32_t i, index;
+	int32_t val;
 
-    int32_t multiplier[MIXER_XCH_MAXCHANNELS];
-  
-private:
-	audio_block_t *inputQueueArray[MIXER_XCH_MAXCHANNELS];
+	if (magnitude) {
+		block = allocate();
+		if (block) {
+			for (i=0; i < AUDIO_BLOCK_SAMPLES; i++) {
+				index = int(phase);
+				phase += inc;
+				if(phase >= wavelenf){
+					phase -= wavelenf;
+				}
+				val = ((wavetable[index] + offset) * magnitude) >> 16;
+				if(val > 32767){ val = 32767; }
+				else if(val < -32768){ val = -32768; }
+				block->data[i] = val;
+			}
+			transmit(block);
+			release(block);
+			return;
+		}
+	}
+}
 
 
-
-};
-
-#endif

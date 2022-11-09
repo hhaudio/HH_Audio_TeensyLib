@@ -27,10 +27,15 @@
 #ifndef HH_Audio_h_
 #define HH_Audio_h_
 
+
+#warning "HH Audio"
 // include all the library headers, so a sketch can use a single
-// #include <Audio.h> to get the whole library
+// #include <HH_Audio.h> to get the whole library
 //
 #include "panner.h"
 #include "mixer_xch.h"
+#include "harmonic_distortion.h"
+#include "multiply_xch.h"
+#include "arbitrary.h"
 
 #endif

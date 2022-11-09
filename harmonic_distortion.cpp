@@ -24,33 +24,26 @@
  * THE SOFTWARE.
  */
 
-#ifndef mixer_xch_h_
-#define mixer_xch_h_
+#include <Arduino.h>
+#include "harmonic_distortion.h"
+#include "utility/dspinst.h"
 
-#include "Arduino.h"
-#include "AudioStream.h"
-
-#define MIXER_XCH_MAXCHANNELS 32
-
-class Mixer_XCH : public AudioStream
+void Harmonic_Distortion::update(void)
 {
-public:
-    Mixer_XCH( void ) : AudioStream(MIXER_XCH_MAXCHANNELS, inputQueueArray) {}
-    virtual void update(void);
-    void gain(unsigned int channel, float gain) {
-        if (channel >= MIXER_XCH_MAXCHANNELS) return;
-        if (gain > 32767.0f) gain = 32767.0f;
-        else if (gain < -32767.0f) gain = -32767.0f;
-        multiplier[channel] = gain * 65536.0f; // TODO: proper roundoff?
+  audio_block_t *block = receiveWritable(0);
+
+  if(block){
+    for (int i=0; i < AUDIO_BLOCK_SAMPLES; i++) {
+      int32_t x2 = multiply_16bx16b(block->data[i], block->data[i]);
+      int32_t x3 = signed_multiply_32x16b(x2, block->data[i]);
+      x2 = signed_multiply_32x16b(x2c, x2);
+      x3 = signed_multiply_32x16b(x3c, x3);
+      block->data[i] -= (x2 + x3);
+      block->data[i] = signed_saturate_rshift(block->data[i], 16, 0);
     }
+    transmit(block);
+    release(block);
+  }
 
-    int32_t multiplier[MIXER_XCH_MAXCHANNELS];
-  
-private:
-	audio_block_t *inputQueueArray[MIXER_XCH_MAXCHANNELS];
+}
 
-
-
-};
-
-#endif

@@ -24,30 +24,32 @@
  * THE SOFTWARE.
  */
 
-#ifndef mixer_xch_h_
-#define mixer_xch_h_
+#ifndef harmonic_distortion_h_
+#define harmonic_distortion_h_
 
 #include "Arduino.h"
 #include "AudioStream.h"
 
-#define MIXER_XCH_MAXCHANNELS 32
-
-class Mixer_XCH : public AudioStream
+class Harmonic_Distortion : public AudioStream
 {
 public:
-    Mixer_XCH( void ) : AudioStream(MIXER_XCH_MAXCHANNELS, inputQueueArray) {}
+    Harmonic_Distortion( void ) : AudioStream(1, inputQueueArray) {}
     virtual void update(void);
-    void gain(unsigned int channel, float gain) {
-        if (channel >= MIXER_XCH_MAXCHANNELS) return;
+    void x2(float gain) {
         if (gain > 32767.0f) gain = 32767.0f;
         else if (gain < -32767.0f) gain = -32767.0f;
-        multiplier[channel] = gain * 65536.0f; // TODO: proper roundoff?
+        x2c = gain * 65536.0f;
     }
-
-    int32_t multiplier[MIXER_XCH_MAXCHANNELS];
+    void x3(float gain) {
+        if (gain > 32767.0f) gain = 32767.0f;
+        else if (gain < -32767.0f) gain = -32767.0f;
+        x3c = gain * 65536.0f;
+    }
   
 private:
-	audio_block_t *inputQueueArray[MIXER_XCH_MAXCHANNELS];
+    int32_t x2c;
+    int32_t x3c;
+	audio_block_t *inputQueueArray[1];
 
 
 

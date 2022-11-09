@@ -24,33 +24,21 @@
  * THE SOFTWARE.
  */
 
-#ifndef mixer_xch_h_
-#define mixer_xch_h_
-
+#ifndef multiply_xch_h_
+#define multiply_xch_h_
 #include "Arduino.h"
 #include "AudioStream.h"
+#include "utility/dspinst.h"
 
-#define MIXER_XCH_MAXCHANNELS 32
 
-class Mixer_XCH : public AudioStream
+
+class Multiply_8CH : public AudioStream
 {
 public:
-    Mixer_XCH( void ) : AudioStream(MIXER_XCH_MAXCHANNELS, inputQueueArray) {}
-    virtual void update(void);
-    void gain(unsigned int channel, float gain) {
-        if (channel >= MIXER_XCH_MAXCHANNELS) return;
-        if (gain > 32767.0f) gain = 32767.0f;
-        else if (gain < -32767.0f) gain = -32767.0f;
-        multiplier[channel] = gain * 65536.0f; // TODO: proper roundoff?
-    }
-
-    int32_t multiplier[MIXER_XCH_MAXCHANNELS];
-  
+	Multiply_8CH( void ) : AudioStream(9, inputQueueArray) { }
+	virtual void update(void);
 private:
-	audio_block_t *inputQueueArray[MIXER_XCH_MAXCHANNELS];
-
-
-
+	audio_block_t *inputQueueArray[9];
 };
 
 #endif
